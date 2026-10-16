@@ -35,6 +35,11 @@
       <li data-i18n="rule3">3 lifelines: 50:50, Ask the audience, Phone a friend.</li>
       <li data-i18n="rule4">Safe levels at question 5 and 10. Walk away any time to keep your winnings.</li>
     </ul>
+    <div class="opts">
+      <div class="opt"><span class="opt-l" data-i18n="optDiff">Difficulty</span><div class="chips" id="opt-diff"></div></div>
+      <div class="opt"><span class="opt-l" data-i18n="optCat">Category</span><div class="chips" id="opt-cat"></div></div>
+      <div class="opt"><span class="opt-l" data-i18n="optTime">Time per question</span><div class="chips" id="opt-time"></div></div>
+    </div>
     <button class="btn gold big" id="btn-start" data-i18n="start">Start</button>
     <p class="muted small" id="best-score"></p>
   </div>
@@ -74,10 +79,19 @@
 <!-- ================= TAB 2 : WORLD TRAINER ================= -->
 <section id="tab-world" class="panel">
   <div id="world-home">
+    <div class="region-bar"><span class="opt-l" data-i18n="optRegion">Continent</span><div class="chips" id="regions"></div></div>
+    <div class="card games-card">
+      <h2 data-i18n="gamesTitle">Games</h2>
+      <p class="muted" data-i18n="gamesIntro">3 lives. How far can you go?</p>
+      <div class="opt"><span class="opt-l" data-i18n="optAnswer">Answer with</span><div class="chips" id="opt-input"></div></div>
+      <div class="modes">
+        <button class="mode game" data-game="flag"><span class="m-ico">🚩</span><b data-i18n="gameFlag">Guess the flag</b><small id="best-flag"></small></button>
+        <button class="mode game" data-game="cap"><span class="m-ico">🏙️</span><b data-i18n="gameCap">Guess the capital</b><small id="best-cap"></small></button>
+      </div>
+    </div>
     <div class="card">
       <h2 data-i18n="worldTitle">Train your world knowledge</h2>
       <p class="muted" data-i18n="worldIntro">Short sessions of 10 questions. The ones you miss come back more often until you know them.</p>
-      <div class="chips" id="regions"></div>
       <div class="modes">
         <button class="mode" data-mode="flag"><span class="m-ico">🏳️</span><b data-i18n="modeFlag">Flag → Country</b><small id="prog-flag"></small></button>
         <button class="mode" data-mode="cap"><span class="m-ico">🏛️</span><b data-i18n="modeCap">Country → Capital</b><small id="prog-cap"></small></button>
@@ -96,6 +110,29 @@
       <div id="wq-feedback" class="feedback hidden"></div>
       <div class="actions"><button class="btn gold hidden" id="wq-next" data-i18n="next">Next</button></div>
     </div>
+  </div>
+
+  <div id="world-game" class="hidden">
+    <div class="card">
+      <div class="wq-top"><button class="btn ghost" id="gg-back" data-i18n="back">← Back</button><span id="gg-lives" class="lives"></span><span id="gg-score"></span></div>
+      <div class="gg-timebar"><i id="gg-timefill"></i></div>
+      <div id="gg-prompt" class="wq-prompt"></div>
+      <div class="answers" id="gg-answers"></div>
+      <form id="gg-form" class="gg-form hidden" autocomplete="off">
+        <input id="gg-input" class="search" type="text" autocapitalize="off" spellcheck="false">
+        <button class="btn gold" type="submit" data-i18n="ok">OK</button>
+        <button class="btn ghost" type="button" id="gg-skip" data-i18n="skip">Skip</button>
+      </form>
+      <div id="gg-feedback" class="feedback hidden"></div>
+    </div>
+  </div>
+
+  <div id="world-gameover" class="card center hidden">
+    <h2 data-i18n="gameOver">Game over</h2>
+    <p class="win" id="go-score"></p>
+    <p class="muted" id="go-best"></p>
+    <div id="go-missed" class="missed"></div>
+    <div class="row-btns"><button class="btn gold" id="go-again" data-i18n="again">Play again</button><button class="btn ghost" id="go-home" data-i18n="back">← Back</button></div>
   </div>
 
   <div id="world-done" class="card center hidden">

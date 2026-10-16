@@ -12,7 +12,16 @@ const store = {
 const T = {
   en: {
     tabGame:'Millionaire', tabWorld:'World trainer', startTitle:'Can you reach the million?',
-    rule1:'15 questions, harder and harder.', rule2:'60 seconds per question.',
+    rule1:'15 questions, harder and harder.', rule2:'A timer on every question (you choose how long).',
+    optDiff:'Difficulty', optCat:'Category', optTime:'Time per question', optRegion:'Continent', optAnswer:'Answer with',
+    diff:{normal:'Normal', hard:'Hard', expert:'Expert'},
+    cats:{all:'All', g:'Geography', h:'History', s:'Science', a:'Arts & books', p:'Sport & games', c:'Everyday'},
+    timeOff:'No timer', sec:'s',
+    gamesTitle:'Games', gamesIntro:'3 lives. Every mistake or time-out costs one. How far can you go?',
+    inputChoices:'4 choices', inputType:'Typing (harder)', gameFlag:'Guess the flag', gameCap:'Guess the capital',
+    bestScore:n=>n?`Best: ${n}`:'No score yet', ok:'OK', skip:'Skip', gameOver:'Game over',
+    typeCountry:'Type the country…', typeCapital:'Type the capital…', capitalOfQ:'Capital of', answerWas:'Answer: ',
+    newBest:'New record! 🎉', yourBest:n=>`Your best: ${n}`, finalScore:n=>`${n} point${n>1?'s':''}`, combo:n=>`🔥 ×${n}`,
     rule3:'3 lifelines: 50:50, Ask the audience, Phone a friend.',
     rule4:'Safe levels at question 5 and 10. Walk away any time to keep your winnings.',
     start:'Start', walk:'Walk away', questionFor:'Question for', final:'Final answer', again:'Play again',
@@ -32,8 +41,17 @@ const T = {
     search:'Search a country or capital', credits:'Country data: mledoze/countries · Flags: flag-icons', cur:'$'
   },
   fr: {
-    tabGame:'Millionnaire', tabWorld:'Culture G', startTitle:'Arriverez-vous au million ?',
-    rule1:'15 questions, de plus en plus difficiles.', rule2:'60 secondes par question.',
+    tabGame:'Millionnaire', tabWorld:'Culture G', startTitle:'Arriverez-vous au million\u00a0?',
+    rule1:'15 questions, de plus en plus difficiles.', rule2:'Un chrono sur chaque question (vous choisissez la durée).',
+    optDiff:'Difficulté', optCat:'Catégorie', optTime:'Temps par question', optRegion:'Continent', optAnswer:'Répondre avec',
+    diff:{normal:'Normal', hard:'Difficile', expert:'Expert'},
+    cats:{all:'Toutes', g:'Géographie', h:'Histoire', s:'Sciences', a:'Arts & livres', p:'Sport & jeux', c:'Vie courante'},
+    timeOff:'Sans chrono', sec:'s',
+    gamesTitle:'Jeux', gamesIntro:'3 vies. Chaque erreur ou temps écoulé en coûte une. Jusqu\'où irez-vous ?',
+    inputChoices:'4 choix', inputType:'Écrire (plus dur)', gameFlag:'Devine le drapeau', gameCap:'Devine la capitale',
+    bestScore:n=>n?`Record : ${n}`:'Pas encore de score', ok:'OK', skip:'Passer', gameOver:'Partie terminée',
+    typeCountry:'Écrivez le pays…', typeCapital:'Écrivez la capitale…', capitalOfQ:'Capitale de', answerWas:'Réponse : ',
+    newBest:'Nouveau record ! 🎉', yourBest:n=>`Votre record : ${n}`, finalScore:n=>`${n} point${n>1?'s':''}`, combo:n=>`🔥 ×${n}`,
     rule3:'3 jokers : 50:50, l\'avis du public, l\'appel à un ami.',
     rule4:'Paliers à la question 5 et 10. Abandonnez quand vous voulez pour garder vos gains.',
     start:'Commencer', walk:'Abandonner', questionFor:'Question pour', final:'Dernier mot', again:'Rejouer',
@@ -63,9 +81,10 @@ function applyLang() {
   $$('[data-i18n]').forEach(el => { const v = t(el.dataset.i18n); if (typeof v === 'string') el.textContent = v; });
   $$('.lang button').forEach(b => b.classList.toggle('on', b.dataset.lang === lang));
   $('#ws-search').placeholder = t('search');
-  buildLadder(); renderBest(); renderRegions(); renderProgress();
+  buildLadder(); renderBest(); renderRegions(); renderProgress(); renderOptions(); renderGameCards();
   if (G.active) renderQuestion(true);
   if (W.active) renderWorldQ(true);
+  if (typeof GG !== 'undefined' && GG.active && !GG.busy) renderGG();
   if (!$('#world-study').classList.contains('hidden')) renderStudy();
 }
 $$('.lang button').forEach(b => b.onclick = () => { lang = b.dataset.lang; store.set('mq_lang', lang); applyLang(); });
@@ -81,7 +100,26 @@ $$('.tab').forEach(b => b.onclick = () => {
    ========================================================= */
 const PRIZES = [100,200,300,500,1000,2000,4000,8000,16000,32000,64000,125000,250000,500000,1000000];
 const SAFE = [4, 9]; // index of safe levels (Q5, Q10)
-const TIME = 60;
+const OPTS = Object.assign({ diff:'normal', cat:'all', time:60 }, store.get('mq_opts', {}));
+// which question tier each of the 15 levels uses, per difficulty
+const PLAN = {
+  normal:[1,1,1,1,1, 2,2,2,2,2, 3,3,3,3,3],
+  hard:  [2,2,2,2,2, 3,3,3,3,3, 4,4,4,4,4],
+  expert:[3,3,3,3,3, 4,4,4,4,4, 4,4,4,4,4]
+};
+function chipRow(sel, items, current, onPick) {
+  const wrap = $(sel); wrap.innerHTML = '';
+  items.forEach(([val, label]) => {
+    const b = document.createElement('button'); b.className = 'chip' + (String(current) === String(val) ? ' on' : '');
+    b.textContent = label; b.onclick = () => onPick(val); wrap.appendChild(b);
+  });
+}
+function renderOptions() {
+  const save = () => { store.set('mq_opts', OPTS); renderOptions(); };
+  chipRow('#opt-diff', Object.entries(t('diff')), OPTS.diff, v => { OPTS.diff = v; save(); });
+  chipRow('#opt-cat', Object.entries(t('cats')), OPTS.cat, v => { OPTS.cat = v; save(); });
+  chipRow('#opt-time', [[30, '30 ' + t('sec')], [60, '60 ' + t('sec')], [90, '90 ' + t('sec')], [0, t('timeOff')]], OPTS.time, v => { OPTS.time = +v; save(); });
+}
 const money = n => (lang === 'fr' ? n.toLocaleString('fr-FR') + ' €' : '$' + n.toLocaleString('en-US'));
 const G = { active:false };
 
@@ -99,16 +137,30 @@ function buildLadder() {
 function renderBest() { const b = store.get('mq_best', 0); $('#best-score').textContent = b ? t('best') + money(b) : ''; }
 
 function pickQuestions() {
-  const seen = new Set(store.get('mq_seen', []));
-  const out = [];
-  [1, 2, 3].forEach(tier => {
-    const ids = QUESTIONS.map((q, i) => i).filter(i => QUESTIONS[i][0] === tier);
-    let fresh = ids.filter(i => !seen.has(i));
-    if (fresh.length < 5) { ids.forEach(i => seen.delete(i)); fresh = ids; } // recycle when exhausted
-    shuffle(fresh).slice(0, 5).forEach(i => { out.push(i); seen.add(i); });
+  // Questions are stored by their English text so the "already seen" list survives new questions being added.
+  const seen = new Set(store.get('mq_seen2', []));
+  const used = new Set(), out = [];
+  const all = QUESTIONS.map((q, i) => i);
+  const catOk = i => OPTS.cat === 'all' || QUESTIONS[i][5] === OPTS.cat;
+  PLAN[OPTS.diff].forEach(tier => {
+    const free = all.filter(i => !used.has(i));
+    // try, in order: right category + right tier + not seen → right category + right tier →
+    // right category + nearest tier → any category + right tier
+    const tries = [
+      free.filter(i => catOk(i) && QUESTIONS[i][0] === tier && !seen.has(QUESTIONS[i][1])),
+      free.filter(i => catOk(i) && QUESTIONS[i][0] === tier),
+      free.filter(i => catOk(i) && Math.abs(QUESTIONS[i][0] - tier) === 1),
+      free.filter(i => catOk(i)),
+      free.filter(i => QUESTIONS[i][0] === tier),
+      free
+    ];
+    const pool = tries.find(p => p.length);
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    used.add(pick); out.push(pick); seen.add(QUESTIONS[pick][1]);
   });
-  store.set('mq_seen', [...seen]);
-  return out;
+  // forget "seen" once most of the bank has been played, so questions rotate forever
+  store.set('mq_seen2', seen.size > QUESTIONS.length * 0.8 ? [] : [...seen]);
+  return out; // already in ladder order (easiest tier first)
 }
 
 function startGame() {
@@ -156,12 +208,15 @@ function selectAnswer(ai) {
 }
 
 function startTimer() {
-  clearInterval(G.timer); G.timeLeft = TIME; drawTimer();
+  clearInterval(G.timer);
+  $('#timer').classList.toggle('hidden', !OPTS.time);
+  if (!OPTS.time) return;
+  G.timeLeft = OPTS.time; drawTimer();
   G.timer = setInterval(() => { G.timeLeft--; drawTimer(); if (G.timeLeft <= 0) { clearInterval(G.timer); timeUp(); } }, 1000);
 }
 function drawTimer() {
   $('#timer-num').textContent = G.timeLeft;
-  $('#timer-ring').style.strokeDashoffset = 119.4 * (1 - G.timeLeft / TIME);
+  $('#timer-ring').style.strokeDashoffset = 119.4 * (1 - G.timeLeft / OPTS.time);
   $('#timer').classList.toggle('warn', G.timeLeft <= 10);
 }
 
@@ -312,7 +367,7 @@ function startWorld(mode) {
   Object.assign(W, { active:true, startMode:mode, qs, i:0, score:0, missed:[] });
   wshow('#world-quiz'); nextWorldQ();
 }
-function wshow(id) { ['#world-home','#world-quiz','#world-done','#world-study'].forEach(x => $(x).classList.toggle('hidden', x !== id)); }
+function wshow(id) { ['#world-home','#world-quiz','#world-done','#world-study','#world-game','#world-gameover'].forEach(x => $(x).classList.toggle('hidden', x !== id)); }
 
 function nextWorldQ() {
   const { mode, c } = W.qs[W.i];
@@ -382,6 +437,141 @@ function renderStudy() {
 }
 $('#ws-search').oninput = renderStudy;
 $('#ws-back').onclick = () => { renderProgress(); wshow('#world-home'); };
+
+/* =========================================================
+   TAB 2 — GAMES: Guess the flag / Guess the capital (3 lives)
+   ========================================================= */
+const GG = { active:false, input:store.get('mq_input', 'choices') };
+const ALIAS = { // extra accepted spellings for typed answers (already accent/space-insensitive)
+  us:['usa','us','unitedstatesofamerica','america','etatsunisdamerique'], gb:['uk','greatbritain','britain','grandebretagne'],
+  cd:['drc','rdc','democraticrepublicofthecongo','republiquedemocratiqueducongo','congokinshasa'],
+  cg:['republicofthecongo','congobrazzaville'], ci:['cotedivoire','ivorycoast'], cz:['czechrepublic','republiquetcheque'],
+  mm:['burma','myanmar'], tr:['turkey','turkiye','turquie'], sz:['swaziland'], mk:['macedonia','macedoine'],
+  ae:['uae','emirates','eau','emirats'], cv:['caboverde','capeverde','capvert'], tl:['easttimor','timorleste'],
+  va:['vatican','holysee','saintsiege'], nl:['holland','hollande'], ps:['stateofpalestine'], md:['moldavia'],
+  st:['saotome','saotomeandprincipe','saotomeetprincipe'], kn:['stkittsandnevis','saintkitts'], lc:['stlucia'],
+  vc:['stvincent','saintvincent'], vn:['vietnam','vietnam'], sv:['elsalvador'], kp:['dprk','coreedunord'], kr:['coreedusud'],
+  ba:['bosnia','bosnie'], tt:['trinidad'], ag:['antigua'], pg:['papuanewguinea'], fm:['micronesia'], bn:['bruneidarussalam'],
+  la:['laos'], ru:['russianfederation'], sy:['syria'], ir:['iran'], gw:['guineabissau'], gq:['equatorialguinea']
+};
+const CAP_ALIAS = {
+  ua:['kiev','kyiv','kiev'], bo:['lapaz','sucre'], za:['pretoria','capetown','lecap','bloemfontein'], sz:['mbabane','lobamba'],
+  lk:['kotte','srijayawardenepura','colombo'], mn:['ulaanbaatar','oulanbator','ulanbator'], cn:['peking','beijing','pekin'],
+  in:['delhi','newdelhi','newdehli'], us:['washington','washingtondc'], mx:['mexicocity','mexico'], kw:['kuwait','koweit','koweitcity'],
+  pa:['panama','panamacity'], gt:['guatemala','guatemalacity'], va:['vatican','vaticancity'], sm:['sanmarino','saintmarin'],
+  sg:['singapore','singapour'], lu:['luxembourg'], mc:['monaco'], dj:['djibouti'], kg:['bishkek','bichkek'], am:['yerevan','erevan'],
+  kz:['astana','nursultan'], mm:['naypyidaw','naypyitaw','naypyitaw'], bd:['dhaka','dacca'], np:['kathmandu','katmandou']
+};
+const bestKey = g => `mq_best_${g}_${GG.input}`;
+function renderGameCards() {
+  chipRow('#opt-input', [['choices', t('inputChoices')], ['type', t('inputType')]], GG.input, v => { GG.input = v; store.set('mq_input', v); renderGameCards(); });
+  ['flag', 'cap'].forEach(g => $('#best-' + g).textContent = t('bestScore')(store.get(bestKey(g), 0)));
+}
+$$('.mode.game').forEach(b => b.onclick = () => startGG(b.dataset.game));
+
+function startGG(game) {
+  const pool = poolFor(game === 'flag' ? 'flag' : 'cap', W.region);
+  Object.assign(GG, { active:true, game, deck:shuffle(pool), i:0, lives:3, score:0, combo:0, missed:[], busy:false });
+  wshow('#world-game'); nextGG();
+}
+function nextGG() {
+  if (GG.i >= GG.deck.length) { GG.deck = shuffle(GG.deck); GG.i = 0; } // went through every country: reshuffle
+  const c = GG.deck[GG.i];
+  GG.cur = c; GG.busy = false;
+  const base = COUNTRIES.filter(x => x.c !== c.c && (GG.game === 'flag' || x.cq));
+  const same = shuffle(base.filter(x => x.r === c.r)), other = shuffle(base.filter(x => x.r !== c.r));
+  GG.choices = shuffle([c, ...[...same, ...other].slice(0, 3)]);
+  $('#gg-feedback').classList.add('hidden');
+  renderGG();
+  GG.limit = GG.input === 'type' ? 20 : 12;
+  GG.start = Date.now(); clearInterval(GG.timer);
+  GG.timer = setInterval(tickGG, 200); tickGG();
+  if (GG.input === 'type') { const inp = $('#gg-input'); inp.value = ''; inp.focus(); }
+}
+function tickGG() {
+  const left = Math.max(0, GG.limit - (Date.now() - GG.start) / 1000);
+  $('#gg-timefill').style.width = (100 * left / GG.limit) + '%';
+  $('.gg-timebar').classList.toggle('warn', left < 4);
+  if (left <= 0) resolveGG(false, true);
+}
+function renderGG() {
+  const c = GG.cur;
+  renderGGHud();
+  $('#gg-prompt').innerHTML = GG.game === 'flag'
+    ? `<span class="sub">${t('whichCountry')}</span><img src="${flag(c)}" alt="flag">`
+    : `<span class="sub">${t('capitalOf')}</span>${escapeHtml(cname(c))}${t('capitalOfEnd')}`;
+  const typing = GG.input === 'type';
+  $('#gg-form').classList.toggle('hidden', !typing);
+  $('#gg-answers').classList.toggle('hidden', typing);
+  $('#gg-input').placeholder = GG.game === 'flag' ? t('typeCountry') : t('typeCapital');
+  if (!typing) {
+    const box = $('#gg-answers'); box.innerHTML = '';
+    GG.choices.forEach((x, k) => {
+      const b = document.createElement('button'); b.className = 'ans'; b.dataset.c = x.c;
+      b.innerHTML = `<span class="k">${'ABCD'[k]}:</span>${escapeHtml(GG.game === 'cap' ? ccap(x) : cname(x))}`;
+      b.onclick = () => { if (!GG.busy) { GG.picked = x.c; resolveGG(x.c === c.c); } };
+      box.appendChild(b);
+    });
+  }
+}
+function key(s) { return norm(s).replace(/^(the|le|la|les|l')\s+/, '').replace(/[^a-z0-9]/g, ''); }
+function lev(a, b) { // edit distance, to forgive small typos
+  const d = Array.from({ length:a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+function targetsOf(c) {
+  return GG.game === 'flag' ? [c.en, c.fr].map(key).concat(ALIAS[c.c] || []) : [c.capEn, c.capFr].map(key).concat(CAP_ALIAS[c.c] || []);
+}
+function typedOk(text, c) {
+  const k = key(text); if (!k) return false;
+  const mine = targetsOf(c);
+  if (mine.includes(k)) return true;
+  // typed exactly another country's name (e.g. "Gambia" for Zambia) → wrong, even if it's 1 letter away
+  if (COUNTRIES.some(o => o.c !== c.c && targetsOf(o).includes(k))) return false;
+  return mine.some(tg => { const tol = tg.length <= 4 ? 0 : tg.length <= 8 ? 1 : 2; return lev(k, tg) <= tol; });
+}
+$('#gg-form').onsubmit = e => { e.preventDefault(); if (!GG.busy && $('#gg-input').value.trim()) resolveGG(typedOk($('#gg-input').value, GG.cur)); };
+$('#gg-skip').onclick = () => { if (!GG.busy) resolveGG(false); };
+function resolveGG(ok, timeout) {
+  if (GG.busy || !GG.active) return;
+  GG.busy = true; clearInterval(GG.timer);
+  const c = GG.cur;
+  if (ok) { GG.score++; GG.combo++; } else { GG.lives--; GG.combo = 0; GG.missed.push(c); }
+  $$('#gg-answers .ans').forEach(b => { b.disabled = true; if (b.dataset.c === c.c) b.classList.add('ok'); else if (b.dataset.c === GG.picked) b.classList.add('bad'); });
+  GG.picked = null;
+  const fb = $('#gg-feedback');
+  fb.className = 'feedback' + (ok ? '' : ' bad');
+  fb.innerHTML = `<img src="${flag(c)}" alt=""><div><b>${ok ? t('right') : (timeout ? '⏱️ ' : '') + t('wrong')}</b><br>${escapeHtml(cname(c))} — ${t('capital')} : <b>${escapeHtml(ccap(c))}</b></div>`;
+  renderGGHud();
+  // also feed the training progress, so games count toward "mastered"
+  const mode = GG.game === 'flag' ? 'flag' : 'cap';
+  const bx = boxes(); bx[mode][c.c] = ok ? Math.min(5, (bx[mode][c.c] || 0) + 1) : 0; store.set('mq_boxes', bx);
+  let ms = mistakes().filter(([m, code]) => !(m === mode && code === c.c)); if (!ok) ms.push([mode, c.c]); store.set('mq_mistakes', ms);
+  setTimeout(() => {
+    if (!GG.active) return;
+    if (GG.lives <= 0) return endGG();
+    GG.i++; nextGG();
+  }, ok ? 900 : 2200);
+}
+function renderGGHud() {
+  $('#gg-lives').textContent = '❤️'.repeat(Math.max(0, GG.lives)) + '🖤'.repeat(3 - Math.max(0, GG.lives));
+  $('#gg-score').innerHTML = `${GG.score} ${GG.combo >= 3 ? `<span class="combo">${t('combo')(GG.combo)}</span>` : ''}`;
+}
+function endGG() {
+  GG.active = false; clearInterval(GG.timer);
+  const prev = store.get(bestKey(GG.game), 0);
+  if (GG.score > prev) store.set(bestKey(GG.game), GG.score);
+  $('#go-score').textContent = t('finalScore')(GG.score);
+  $('#go-best').textContent = GG.score > prev ? t('newBest') : t('yourBest')(prev);
+  $('#go-missed').innerHTML = GG.missed.map(c => `<div><img src="${flag(c)}" alt=""><span><b>${escapeHtml(cname(c))}</b><br>${escapeHtml(ccap(c))}</span></div>`).join('');
+  renderGameCards(); renderProgress(); wshow('#world-gameover');
+}
+$('#gg-back').onclick = () => { GG.active = false; clearInterval(GG.timer); renderGameCards(); renderProgress(); wshow('#world-home'); };
+$('#go-again').onclick = () => startGG(GG.game);
+$('#go-home').onclick = () => { renderGameCards(); renderProgress(); wshow('#world-home'); };
 
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch])); }
 
