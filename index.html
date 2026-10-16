@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Million Quest</title>
+<meta name="description" content="Bilingual EN/FR millionaire quiz and world trainer (flags, capitals).">
+<meta name="theme-color" content="#0b0f2e">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,4 58,18 58,46 32,60 6,46 6,18' fill='%230b0f2e' stroke='%23f5c542' stroke-width='4'/><text x='32' y='42' font-size='26' text-anchor='middle' fill='%23f5c542' font-family='Arial' font-weight='700'>M</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo">◆</span> Million Quest</div>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="game" role="tab" data-i18n="tabGame">Millionaire</button>
+    <button class="tab" data-tab="world" role="tab" data-i18n="tabWorld">World trainer</button>
+  </nav>
+  <div class="lang">
+    <button data-lang="en">EN</button><button data-lang="fr">FR</button>
+  </div>
+</header>
+
+<main>
+<!-- ================= TAB 1 : GAME ================= -->
+<section id="tab-game" class="panel active">
+  <div id="game-start" class="card center">
+    <h1 data-i18n="startTitle">Can you reach the million?</h1>
+    <ul class="rules">
+      <li data-i18n="rule1">15 questions, harder and harder.</li>
+      <li data-i18n="rule2">60 seconds per question.</li>
+      <li data-i18n="rule3">3 lifelines: 50:50, Ask the audience, Phone a friend.</li>
+      <li data-i18n="rule4">Safe levels at question 5 and 10. Walk away any time to keep your winnings.</li>
+    </ul>
+    <button class="btn gold big" id="btn-start" data-i18n="start">Start</button>
+    <p class="muted small" id="best-score"></p>
+  </div>
+
+  <div id="game-play" class="hidden">
+    <div class="play-grid">
+      <div class="stage">
+        <div class="hud">
+          <div class="lifelines">
+            <button class="life" id="ll-5050" title="50:50">50:50</button>
+            <button class="life" id="ll-audience" title="Audience">👥</button>
+            <button class="life" id="ll-phone" title="Phone">📞</button>
+          </div>
+          <div class="timer" id="timer"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="19" class="t-bg"/><circle cx="22" cy="22" r="19" class="t-fg" id="timer-ring"/></svg><span id="timer-num">60</span></div>
+          <button class="btn ghost" id="btn-walk" data-i18n="walk">Walk away</button>
+        </div>
+        <div class="now-playing"><span data-i18n="questionFor">Question for</span> <b id="now-prize"></b> · <span id="q-index"></span>/15</div>
+        <div class="question" id="question"></div>
+        <div class="answers" id="answers"></div>
+        <div class="helper hidden" id="helper"></div>
+        <div class="actions">
+          <button class="btn gold" id="btn-final" disabled data-i18n="final">Final answer</button>
+        </div>
+      </div>
+      <ol class="ladder" id="ladder"></ol>
+    </div>
+  </div>
+
+  <div id="game-end" class="card center hidden">
+    <h1 id="end-title"></h1>
+    <p class="win" id="end-amount"></p>
+    <p id="end-detail" class="muted"></p>
+    <button class="btn gold big" id="btn-again" data-i18n="again">Play again</button>
+  </div>
+</section>
+
+<!-- ================= TAB 2 : WORLD TRAINER ================= -->
+<section id="tab-world" class="panel">
+  <div id="world-home">
+    <div class="card">
+      <h2 data-i18n="worldTitle">Train your world knowledge</h2>
+      <p class="muted" data-i18n="worldIntro">Short sessions of 10 questions. The ones you miss come back more often until you know them.</p>
+      <div class="chips" id="regions"></div>
+      <div class="modes">
+        <button class="mode" data-mode="flag"><span class="m-ico">🏳️</span><b data-i18n="modeFlag">Flag → Country</b><small id="prog-flag"></small></button>
+        <button class="mode" data-mode="cap"><span class="m-ico">🏛️</span><b data-i18n="modeCap">Country → Capital</b><small id="prog-cap"></small></button>
+        <button class="mode" data-mode="capr"><span class="m-ico">📍</span><b data-i18n="modeCapR">Capital → Country</b><small id="prog-capr"></small></button>
+        <button class="mode" data-mode="review"><span class="m-ico">🔁</span><b data-i18n="modeReview">Review my mistakes</b><small id="prog-review"></small></button>
+        <button class="mode" data-mode="study"><span class="m-ico">📖</span><b data-i18n="modeStudy">Study list</b><small data-i18n="studySub">All flags & capitals</small></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="world-quiz" class="hidden">
+    <div class="card">
+      <div class="wq-top"><button class="btn ghost" id="wq-back" data-i18n="back">← Back</button><span id="wq-progress"></span><span id="wq-score"></span></div>
+      <div id="wq-prompt" class="wq-prompt"></div>
+      <div class="answers" id="wq-answers"></div>
+      <div id="wq-feedback" class="feedback hidden"></div>
+      <div class="actions"><button class="btn gold hidden" id="wq-next" data-i18n="next">Next</button></div>
+    </div>
+  </div>
+
+  <div id="world-done" class="card center hidden">
+    <h2 id="wd-title"></h2>
+    <p id="wd-detail" class="muted"></p>
+    <div id="wd-missed" class="missed"></div>
+    <div class="row-btns"><button class="btn gold" id="wd-again" data-i18n="again">Play again</button><button class="btn ghost" id="wd-home" data-i18n="back">← Back</button></div>
+  </div>
+
+  <div id="world-study" class="hidden">
+    <div class="card">
+      <div class="wq-top"><button class="btn ghost" id="ws-back" data-i18n="back">← Back</button><input id="ws-search" class="search" type="search" placeholder="Search"></div>
+      <div class="study-grid" id="ws-grid"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="foot muted small"><span data-i18n="credits">Country data: mledoze/countries · Flags: flag-icons</span></footer>
+
+<script src="data/questions.js"></script>
+<script src="data/countries.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
