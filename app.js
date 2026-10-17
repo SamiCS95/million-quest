@@ -29,7 +29,7 @@ const T = {
     phoneSure:(l,p)=>`"I'm pretty sure it's ${l}. Maybe ${p}% sure."`,
     phoneUnsure:(l,p)=>`"Hmm… I'd go with ${l}, but only ${p}% sure. Sorry!"`,
     winTitle:'MILLIONAIRE! 🏆', walkTitle:'You walked away', loseTitle:'Wrong answer', timeTitle:'Time is up ⏱️',
-    correctWas:'The correct answer was: ', walkConfirm:'Walk away with ', youTake:'You leave with',
+    correctWas:'The correct answer was: ', funFact:'Remember it:', walkConfirm:'Walk away with ', youTake:'You leave with',
     worldTitle:'Train your world knowledge', worldIntro:'Short sessions of 10 questions. The ones you miss come back more often until you know them.',
     modeFlag:'Flag → Country', modeCap:'Country → Capital', modeCapR:'Capital → Country', modeReview:'Review my mistakes',
     modeStudy:'Study list', studySub:'All flags & capitals', back:'← Back', next:'Next',
@@ -59,7 +59,7 @@ const T = {
     phoneSure:(l,p)=>`« Je suis presque sûr que c'est ${l}. Disons ${p} %. »`,
     phoneUnsure:(l,p)=>`« Hmm… je dirais ${l}, mais je ne suis sûr qu'à ${p} %. Désolé ! »`,
     winTitle:'MILLIONNAIRE ! 🏆', walkTitle:'Vous avez abandonné', loseTitle:'Mauvaise réponse', timeTitle:'Temps écoulé ⏱️',
-    correctWas:'La bonne réponse était : ', walkConfirm:'Partir avec ', youTake:'Vous repartez avec',
+    correctWas:'La bonne réponse était : ', funFact:'Pour t\'en souvenir :', walkConfirm:'Partir avec ', youTake:'Vous repartez avec',
     worldTitle:'Entraînez votre culture générale', worldIntro:'Sessions courtes de 10 questions. Celles que vous ratez reviennent plus souvent jusqu\'à ce que vous les sachiez.',
     modeFlag:'Drapeau → Pays', modeCap:'Pays → Capitale', modeCapR:'Capitale → Pays', modeReview:'Revoir mes erreurs',
     modeStudy:'Liste d\'étude', studySub:'Tous les drapeaux et capitales', back:'← Retour', next:'Suivant',
@@ -84,6 +84,7 @@ function applyLang() {
   buildLadder(); renderBest(); renderRegions(); renderProgress(); renderOptions(); renderGameCards();
   if (G.active) renderQuestion(true);
   if (W.active) renderWorldQ(true);
+  if (G.endQ !== undefined) renderEndFact();
   if (typeof GG !== 'undefined' && GG.active && !GG.busy) renderGG();
   if (!$('#world-study').classList.contains('hidden')) renderStudy();
 }
@@ -253,9 +254,23 @@ function endGame(kind, amount) {
   const q = QUESTIONS[G.qs[G.level]];
   $('#end-title').textContent = { win:t('winTitle'), walk:t('walkTitle'), lose:t('loseTitle'), time:t('timeTitle') }[kind];
   $('#end-amount').textContent = money(amount);
-  $('#end-detail').textContent = kind === 'win' ? '' : t('correctWas') + (lang === 'fr' ? q[4][0] : q[2][0]);
+  $('#end-detail').textContent = '';
+  G.endQ = kind === 'win' ? null : q;
+  renderEndFact();
   if (amount > store.get('mq_best', 0)) store.set('mq_best', amount);
   renderBest(); show('#game-end');
+}
+// After a wrong answer / time-out / walk-away: show the question, the right answer and a fun fact to remember it
+function renderEndFact() {
+  const box = $('#end-fact'), q = G.endQ;
+  if (!q) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+  const fr = lang === 'fr';
+  const fact = (window.FACTS || {})[q[1]];
+  box.innerHTML =
+    `<div class="fact-q">${escapeHtml(fr ? q[3] : q[1])}</div>` +
+    `<div class="fact-a">✅ ${t('correctWas')}<b>${escapeHtml(fr ? q[4][0] : q[2][0])}</b></div>` +
+    (fact ? `<div class="fact-f">💡 <b>${t('funFact')}</b> ${escapeHtml(fr ? fact[1] : fact[0])}</div>` : '');
+  box.classList.remove('hidden');
 }
 
 /* lifelines */
