@@ -18,9 +18,10 @@ Owner: Sami (talks in English or French; wants simple numbered steps, French ter
 - `data/countries.js` + `flags/*.svg` — 195 countries for the "Culture G" tab (flag/capital games + trainer).
 
 ## State (2026-10-20)
-1,351 questions, all with facts. Counts: m 140, s 169, g 165, h 138, c 136, a 125, p 113, v 89, z 75, n 72, f 71, u 58.
+1,851 questions, all with facts. Counts: m 241, s 187, g 184, v 179, h 160, f 155, a 137, c 136, u 135, z 127, p 123, n 87.
+Tiers after the 2026-10-20 batch of 500: new questions were 8 tier-2, 278 tier-3, 214 tier-4.
 Sami loves anime, video games (LoL, Rematch, Rocket League, Dofus) and finds easy questions boring.
-Next request: add 500 more questions (worldwide, not Morocco-focused), mostly tier 3–4, boost anime, games, films, music, fun.
+Thin spots: n (animals) 87, p (sport) 123, c (everyday) 136 got few or no new questions. Facts were written from memory, not checked one by one against sources.
 
 ## How to add questions (process)
 1. `git pull`. Write batches of ~100 in scratch files as 8-field lines: the 6 question fields + "EN fact" + "FR fact".
