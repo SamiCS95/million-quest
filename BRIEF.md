@@ -32,3 +32,13 @@ Thin spots: n (animals) 87, p (sport) 123, c (everyday) 136 got few or no new qu
 5. Test with Playwright (Chromium preinstalled; serve folder with `python3 -m http.server`): play full games per category, no page errors.
 6. Commit (author "Sami Chafi <csami95@gmail.com>") and push; check Vercel deployment reaches READY.
 7. Report: how many added, new total, per-category counts, thin spots.
+
+## Next: import Open Trivia DB (decided 2026-10-20)
+- Sami allowed `opentdb.com` in claude.ai network settings (works in NEW chats only).
+- Source: https://opentdb.com — 5,299 verified questions, licence CC BY-SA 4.0 → must add a visible credit
+  ("Some questions from Open Trivia DB, CC BY-SA 4.0") on the site; our question files then fall under the same licence (Sami OK'd).
+- Download with the API (session token, `type=multiple`, 50 per call), save the raw JSON in scratch, decode HTML entities.
+- Keep: multiple choice, medium/hard, not US-centric trivia, not time-sensitive, no duplicate of existing (normalised text AND same fact).
+  Priority categories: 31 anime, 15 video games, 11 film, 14 TV, 12 music, 27 animals, 21 sport, then the rest.
+- For each kept question: fact-check, map to our tier/cat, write the French version and an EN+FR fun fact.
+- ~400–500 per chat, then validate, play-test, push, check Vercel READY, update counts here.
