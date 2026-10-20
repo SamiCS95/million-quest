@@ -23,14 +23,14 @@ Batch 1 from Open Trivia DB (407 added): anime 57, video games 176, films 64 + T
 Credit "Some questions from Open Trivia DB (opentdb.com), CC BY-SA 4.0" is in the footer (index.html + app.js i18n, EN and FR).
 Sami loves anime, video games (LoL, Rematch, Rocket League, Dofus) and finds easy questions boring.
 Thin spots: n (animals) 87, p (sport) 123, c (everyday) 136, z 127. Entertainment is now very heavy vs the rest.
-Facts were written from memory, not checked one by one against sources.
+Older (pre-OpenTDB) facts were written from memory, not checked one by one against sources.
 
-## Online fact-check of OpenTDB batch 1 (in progress, 2026-10-20)
-- Index of the 407 questions: `notes/otdb-batch1-index.txt` (line N = item N-1). Log with sources: `notes/factcheck-otdb-batch1.md`.
-- DONE (searched + read a source): anime 0–57, video games 58–190 and 291–301. Fixed ~35 items (facts/questions/answers).
-- LEFT TO CHECK ONLINE: video games 302–333, films 191–254, TV 255–290, music 334–406.
-- Tool limit: ~200 web searches per reply, so continue in a new message. Constructed Wikipedia URLs get blocked:
-  always WebSearch first, then WebFetch a URL from the results (redirect targets are blocked too).
+## Online fact-check of OpenTDB batch 1 (DONE, 2026-10-20)
+- All 407 checked online (search + read a source), except 3 textbook music-theory items. Log with sources per item:
+  `notes/factcheck-otdb-batch1.md`. Index: `notes/otdb-batch1-index.txt` (line N = item N-1).
+- ~65 items fixed in total over 3 commits (mostly facts; a few questions/answers rewritten, e.g. Illmatic "Bible of hip hop" was wrong).
+- Method that works: WebSearch first, then WebFetch a URL from the results (constructed URLs and redirect targets get blocked).
+  ~200 searches per reply max.
 
 ## How to add questions (process)
 1. `git pull`. Write batches of ~100 in scratch files as 8-field lines: the 6 question fields + "EN fact" + "FR fact".
