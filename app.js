@@ -38,7 +38,7 @@ const T = {
     whichCountryCap:'This is the capital of which country?', right:'Correct!', wrong:'Not quite.',
     capital:'Capital', score:(a,b)=>`${a}/${b}`, done:(a,b)=>`${a}/${b} correct`, perfect:'Perfect session! 🎉',
     keepGoing:'Missed ones will come back more often. Review them:', nothingReview:'No mistakes to review yet. Play a session first.',
-    search:'Search a country or capital', credits:'Country data: mledoze/countries · Flags: flag-icons', cur:'$'
+    search:'Search a country or capital', credits:'Country data: mledoze/countries · Flags: flag-icons · Some questions from Open Trivia DB (opentdb.com), CC BY-SA 4.0', cur:'$'
   },
   fr: {
     tabGame:'Millionnaire', tabWorld:'Culture G', startTitle:'Arriverez-vous au million\u00a0?',
@@ -68,7 +68,7 @@ const T = {
     whichCountryCap:'C\'est la capitale de quel pays ?', right:'Bonne réponse !', wrong:'Raté.',
     capital:'Capitale', score:(a,b)=>`${a}/${b}`, done:(a,b)=>`${a}/${b} bonnes réponses`, perfect:'Session parfaite ! 🎉',
     keepGoing:'Les erreurs reviendront plus souvent. À revoir :', nothingReview:'Aucune erreur à revoir. Jouez d\'abord une session.',
-    search:'Chercher un pays ou une capitale', credits:'Données pays : mledoze/countries · Drapeaux : flag-icons', cur:'€'
+    search:'Chercher un pays ou une capitale', credits:'Données pays : mledoze/countries · Drapeaux : flag-icons · Certaines questions viennent d’Open Trivia DB (opentdb.com), CC BY-SA 4.0', cur:'€'
   }
 };
 const REGIONS = ['Africa','Americas','Asia','Europe','Oceania'];
