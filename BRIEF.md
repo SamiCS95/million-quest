@@ -17,11 +17,13 @@ Owner: Sami (talks in English or French; wants simple numbered steps, French ter
   EVERY question needs a fact (shown after a wrong answer / time-out / walk-away).
 - `data/countries.js` + `flags/*.svg` — 195 countries for the "Culture G" tab (flag/capital games + trainer).
 
-## State (2026-10-20)
-1,851 questions, all with facts. Counts: m 241, s 187, g 184, v 179, h 160, f 155, a 137, c 136, u 135, z 127, p 123, n 87.
-Tiers after the 2026-10-20 batch of 500: new questions were 8 tier-2, 278 tier-3, 214 tier-4.
+## State (2026-10-20, after Open Trivia DB batch 1)
+2,258 questions, all with facts. Counts: v 355, m 298, f 255, u 209, s 187, g 184, h 160, a 137, c 136, z 127, p 123, n 87.
+Batch 1 from Open Trivia DB (407 added): anime 57, video games 176, films 64 + TV 36 (both "f"), music 74 (+1 Vocaloid in "u"); tiers 187 tier-3, 220 tier-4.
+Credit "Some questions from Open Trivia DB (opentdb.com), CC BY-SA 4.0" is in the footer (index.html + app.js i18n, EN and FR).
 Sami loves anime, video games (LoL, Rematch, Rocket League, Dofus) and finds easy questions boring.
-Thin spots: n (animals) 87, p (sport) 123, c (everyday) 136 got few or no new questions. Facts were written from memory, not checked one by one against sources.
+Thin spots: n (animals) 87, p (sport) 123, c (everyday) 136, z 127. Entertainment is now very heavy vs the rest.
+Facts were written from memory, not checked one by one against sources.
 
 ## How to add questions (process)
 1. `git pull`. Write batches of ~100 in scratch files as 8-field lines: the 6 question fields + "EN fact" + "FR fact".
@@ -33,12 +35,16 @@ Thin spots: n (animals) 87, p (sport) 123, c (everyday) 136 got few or no new qu
 6. Commit (author "Sami Chafi <csami95@gmail.com>") and push; check Vercel deployment reaches READY.
 7. Report: how many added, new total, per-category counts, thin spots.
 
-## Next: import Open Trivia DB (decided 2026-10-20)
-- Sami allowed `opentdb.com` in claude.ai network settings (works in NEW chats only).
-- Source: https://opentdb.com — 5,299 verified questions, licence CC BY-SA 4.0 → must add a visible credit
-  ("Some questions from Open Trivia DB, CC BY-SA 4.0") on the site; our question files then fall under the same licence (Sami OK'd).
-- Download with the API (session token, `type=multiple`, 50 per call), save the raw JSON in scratch, decode HTML entities.
-- Keep: multiple choice, medium/hard, not US-centric trivia, not time-sensitive, no duplicate of existing (normalised text AND same fact).
-  Priority categories: 31 anime, 15 video games, 11 film, 14 TV, 12 music, 27 animals, 21 sport, then the rest.
-- For each kept question: fact-check, map to our tier/cat, write the French version and an EN+FR fun fact.
-- ~400–500 per chat, then validate, play-test, push, check Vercel READY, update counts here.
+## Next: Open Trivia DB batch 2
+- Batch 1 (2026-10-20) used categories 31 anime, 15 video games, 11 film, 14 TV, 12 music (medium+hard). Those are mostly
+  exhausted: what's left there is niche/US-centric/time-sensitive and was skipped on purpose.
+- Next priority: 27 animals (n), 21 sport (p), then 9 general knowledge, 17 science, 22 geography, 23 history, 10 books, 18 computers.
+- OpenTDB API quirk: with a session token, once fewer than 50 questions are left the API returns code 4 (not 1) —
+  retry with amount=20, 5, 1 to drain the rest. Max 1 request per 5 s. Use `encode=url3986` and URL-decode (no HTML entities).
+  The shell can reach opentdb.com but connections are flaky (resets) → retry.
+- Keep: multiple choice, medium/hard, not US-centric, not time-sensitive, no duplicate (normalised text AND same fact).
+  Watch for: answers that went stale (e.g. "which isn't an Ed Sheeran album" — he released "-" in 2023), myths (Gandhi nuke bug),
+  lyric-based questions (skip: no lyrics), facts that give away the answer of an existing question.
+- The game code is inside an IIFE: in Playwright, read the question text from the DOM and look it up in window.QUESTIONS;
+  the correct answer button is `#answers .ans[data-ai="0"]`.
+- ~400 per chat, then validate, play-test, push, check Vercel READY, update counts here.
